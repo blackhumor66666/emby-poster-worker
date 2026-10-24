@@ -11,10 +11,10 @@
 
 ## 效果预览
 
-**渲染后的海报**——顶部是画质徽章（分辨率 / 片源 / HDR / 全景声），底部是三源评分条（豆瓣绿标、IMDb 黄标、烂番茄红标）：
+**渲染后的海报**——顶部是画质徽章（分辨率 / 片源 / HDR / 音频），底部是三源评分条（豆瓣绿标、IMDb 黄标、烂番茄红标）：
 
 <p align="center">
-  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：顶部 4K WEB-DL Dolby Vision Atmos 徽章，底部豆瓣 7.5 / IMDb 7.2 / 烂番茄 66%">
+  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K BLURAY HDR10 DOLBY 徽章，豆瓣 8.8 / IMDb 7.9 / 烂番茄 81%">
 </p>
 
 **同一个条目，处理前后**——原图先缓存再叠加，重绘永远基于干净原图，不会越叠越厚：
@@ -24,15 +24,14 @@
   <img src="docs/screenshots/poster-sample.jpg" width="250" alt="渲染后：徽章与评分就位">
 </p>
 
-**不同片源与评分组合都各自成立**——分辨率从 4K 到 576P、单源到三源，缺失的评分按显示方案收起，不会留空槽：
+**从 4K 原盘到低清网络源都成立**——徽章按媒体流实际信息生成，缺失的评分按显示方案收起，不留空槽：
 
 <p align="center">
-  <img src="docs/screenshots/poster-wall-007.jpg" width="195" alt="4K BLURAY Dolby Atmos，豆瓣 IMDb 烂番茄三源">
-  <img src="docs/screenshots/poster-wall-concert.jpg" width="195" alt="演唱会 1080P BLURAY，仅豆瓣单源">
-  <img src="docs/screenshots/poster-wall-8mile.jpg" width="195" alt="576P HDTV，三源评分">
-</p>
-<p align="center">
-  <sub>左：4K 原盘 + 全景声，三源齐全　中：演唱会 1080P，只有豆瓣分时自动收成单源　右：576P 网络源，三源照常</sub>
+  <img src="docs/screenshots/poster-apollo.jpg" width="185" alt="4K BLURAY HDR10 DTS-HD，三源">
+  <img src="docs/screenshots/poster-007.jpg" width="185" alt="4K BLURAY">
+  <img src="docs/screenshots/poster-2046.jpg" width="185" alt="4K">
+  <img src="docs/screenshots/poster-dune.jpg" width="185" alt="720P">
+  <img src="docs/screenshots/poster-8mile.jpg" width="185" alt="SD">
 </p>
 
 **内置管理控制台**——纯静态页面，由 Worker 直接托管，不需要额外的运行时：
