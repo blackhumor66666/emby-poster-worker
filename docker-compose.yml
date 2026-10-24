@@ -42,7 +42,7 @@ services:
       - ./cache:/data/cache
       - ./config:/data/config
       # 可选：神医助手 Pro 的豆瓣缓存目录（只读），里面应有 cache/ 子目录。
-      # 留空目录不会报错，但豆瓣评分会全部显示 --。详见 README 的「豆瓣评分自动核对与可信度」。
+      # 留空目录不会报错，但豆瓣评分会全部显示 --。详见 README 的「豆瓣评分来自神医助手 Pro」。
       - ${DOUBAN_CACHE_HOST_PATH:-./douban-cache}:/data/douban:ro
     logging:
       driver: json-file

@@ -37,17 +37,48 @@
 
 ## 快速开始
 
-### 第 1 步：准备三个值
+两种部署方式，任选其一。**NAS 用户建议用方式一**，不需要 clone 仓库。
 
-打开 Emby 网页端 → **设置 → 高级 → API 密钥** → 点「添加」新建一个 Key，复制下来。再把这三个值记下来：
+### 方式一：直接贴 compose 文件（NAS 推荐）
 
-| 要什么 | 长什么样 | 在哪拿 |
-| --- | --- | --- |
-| Emby 地址 | `http://192.168.1.10:8096` | 你平时访问 Emby 用的网址 |
-| Emby API Key | 一串字母数字 | 上面新建的那个 |
-| Worker 地址 | `http://192.168.1.10:8098` | 你准备部署 Worker 的那台机器的 IP，端口默认 8098 |
+在 NAS 上建一个目录（例如 `/volume1/docker/emby-poster-worker`），新建 `docker-compose.yml`，粘贴下面内容，把带 `# ←` 的三行改成你自己的值：
 
-### 第 2 步：下载、填写、启动
+```yaml
+services:
+  emby-poster-worker:
+    image: ghcr.io/blackhumor66666/emby-poster-worker:latest
+    container_name: emby-poster-worker
+    restart: unless-stopped
+    ports:
+      - "8098:8080"                              # 左边是宿主机端口，被占用就改这里
+    environment:
+      EMBY_URL: http://192.168.1.10:8096         # ← 你的 Emby 地址
+      EMBY_API_KEY: 粘贴你的Key                   # ← Emby 设置 → 高级 → API 密钥
+      PUBLIC_BASE_URL: http://192.168.1.10:8098  # ← Emby 能访问到的 Worker 地址
+      DRY_RUN: "true"                            # 先试运行，确认效果后改成 "false"
+      TZ: Asia/Shanghai
+      LOG_TIMEZONE: Asia/Shanghai
+    volumes:
+      - ./cache:/data/cache
+      - ./config:/data/config
+      # 可选：挂载神医助手 Pro 的豆瓣缓存（只读），路径换成你自己的
+      # - /volume1/docker/emby/config/metadata_root:/data/douban:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+```
+
+然后在同一目录执行：
+
+```bash
+docker compose up -d
+```
+
+群晖图形界面操作：**Container Manager → 项目 → 新增** → 路径选这个目录 → 来源选「使用已存在的 docker-compose.yml」→ 完成。威联通用 Container Station 的「应用程序」同理。
+
+### 方式二：clone 仓库（需要改代码或本地构建时）
 
 ```bash
 git clone https://github.com/blackhumor66666/emby-poster-worker.git
@@ -55,7 +86,7 @@ cd emby-poster-worker
 cp .env.example .env
 ```
 
-用任意编辑器打开 `.env`，**只需要改文件开头的三行**，把第 1 步的值填进去，其他都不用动：
+用编辑器打开 `.env`，**只改开头三行**，其余保持默认：
 
 ```env
 EMBY_URL=http://192.168.1.10:8096
@@ -63,31 +94,21 @@ EMBY_API_KEY=粘贴你的Key
 PUBLIC_BASE_URL=http://192.168.1.10:8098
 ```
 
-> `PUBLIC_BASE_URL` 必须是 **Emby 能访问到**的地址。Emby 和 Worker 装在同一台机器就填那台机器的内网 IP，别填 `localhost`。
-
-然后一条命令启动：
-
 ```bash
 docker compose up -d --build
 ```
 
-不想本地构建？把 `docker-compose.yml` 里的 `build: .` 换成 `image: ghcr.io/blackhumor66666/emby-poster-worker:latest`，再去掉 `--build` 即可。
+> `PUBLIC_BASE_URL` 必须是 **Emby 能访问到**的地址。Emby 和 Worker 装在同一台机器就填那台机器的内网 IP，别填 `localhost`。端口要和 compose 里映射的宿主机端口一致。
 
-### 第 3 步：先看效果（这一步不会动你的库）
+### 第三步：先看效果（两种方式都一样，不会动你的库）
 
-把 `.env` 里的 `DRY_RUN=false` 改成 `DRY_RUN=true`，保存后再执行一次 `docker compose up -d`。
+保持 `DRY_RUN` 为 `true`（方式一在 compose 里改，方式二在 `.env` 里改），启动后等一两分钟，打开 `cache/rendered/` 文件夹——里面就是渲染好的成品海报，直接点开检查：徽章位置对不对、评分全不全、有没有遮挡。
 
-等一两分钟，打开项目目录下的 `cache/rendered/` 文件夹——里面就是渲染好的成品海报，直接点开检查：徽章位置对不对、评分全不全、有没有遮挡。
+> 只想先试一部片？设置 `ITEM_IDS=条目ID`（条目 ID 在 Emby 网页端该影片的地址栏里）。
 
-> 只想先试一部片？在 `.env` 里加一行 `ITEM_IDS=条目ID`（条目 ID 在 Emby 网页端该影片的地址栏里）。
+### 第四步：满意后正式生效
 
-### 第 4 步：满意后正式生效
-
-把 `DRY_RUN` 改回 `false`，再来一次：
-
-```bash
-docker compose up -d
-```
+把 `DRY_RUN` 改成 `false`，再执行一次 `docker compose up -d`。
 
 Worker 每小时扫一次库：新片、换了片源、升级了渲染规则的条目自动重绘，其余跳过。之后基本不用管它。
 
