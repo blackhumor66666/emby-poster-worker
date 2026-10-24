@@ -1,0 +1,12 @@
+# Normalise line endings so a Windows checkout does not commit CRLF into a
+# Linux-built container image.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary

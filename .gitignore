@@ -1,0 +1,27 @@
+# --- secrets -----------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# --- runtime data ------------------------------------------------------
+cache/
+config/*
+!config/.gitkeep
+douban-cache/*
+!douban-cache/.gitkeep
+*-state.json
+boxset-covers-state.json
+
+# --- python ------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- editor / backup clutter -------------------------------------------
+*.bak
+*.bak-*
+*.tmp
+*.orig
+.DS_Store
+Thumbs.db

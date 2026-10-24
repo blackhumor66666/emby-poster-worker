@@ -1,0 +1,5 @@
+# Test-only dependencies.
+#
+# The suite uses the standard library `unittest` only, but importing `app.py`
+# requires the runtime packages as well, so they are pulled in here.
+-r requirements.txt

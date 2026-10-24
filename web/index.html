@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#152b26">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23152b26'/%3E%3Ctext x='32' y='43' font-family='Georgia,Palatino,serif' font-size='26' font-weight='700' fill='%23cfa76b' text-anchor='middle'%3EEP%3C/text%3E%3C/svg%3E">
+  <title>Emby Poster Worker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">EP</div>
+        <div><strong>Poster Worker</strong><small>Emby 海报管理 · v<span id="app-version">—</span></small></div>
+      </div>
+      <nav class="nav-list" aria-label="主导航">
+        <button class="nav-item active" data-page="overview"><span class="nav-icon">⌂</span><span>概览</span></button>
+        <button class="nav-item" data-page="library"><span class="nav-icon">▦</span><span>影视库</span></button>
+        <button class="nav-item" data-page="style"><span class="nav-icon">✦</span><span>海报样式</span></button>
+        <button class="nav-item" data-page="sources"><span class="nav-icon">◎</span><span>数据来源</span></button>
+        <button class="nav-item" data-page="tasks"><span class="nav-icon">↻</span><span>任务与日志</span></button>
+        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span>系统设置</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="system-pill"><span class="status-dot" id="sidebar-status-dot"></span><span id="sidebar-status">连接检查中</span></div>
+        <button class="user-chip" id="logout-btn"><span class="avatar">A</span><span id="sidebar-user">管理员</span><span>↪</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div id="topbar-heading">
+          <p class="eyebrow">EMBY POSTER WORKER · v<span id="app-version-top">—</span></p>
+          <h1 id="page-title">概览</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="refresh-btn" title="刷新数据">↻</button>
+          <button class="primary-button" id="global-scan-btn"><span>▶</span> 执行扫描</button>
+        </div>
+      </header>
+
+      <div id="toast" class="toast" role="status"></div>
+
+      <section class="page active" data-page-view="overview">
+        <div class="hero-panel">
+          <div>
+            <div class="hero-kicker">LIBRARY OVERVIEW</div>
+            <h2>影视库海报状态，一眼看清。</h2>
+            <p>这里的数字分别代表资源范围、海报应用、评分数据和待处理异常，不是播放健康度。</p>
+          </div>
+          <div class="hero-orbit"><span></span><span></span><span></span><b>EP</b></div>
+        </div>
+        <div class="metric-grid">
+          <article class="metric-card clickable" data-goto="library" title="查看影视库"><div class="metric-label">纳入扫描的资源</div><div class="metric-value" id="metric-total">—</div><div class="metric-note">电影与剧集总数</div></article>
+          <article class="metric-card accent clickable" data-goto="library" title="查看影视库"><div class="metric-label">已应用海报</div><div class="metric-value" id="metric-rendered">—</div><div class="metric-progress"><i id="metric-rendered-bar"></i></div><div class="metric-note" id="metric-rendered-note">等待扫描</div></article>
+          <article class="metric-card clickable" data-goto="library" title="查看影视库"><div class="metric-label">至少一项评分</div><div class="metric-value" id="metric-rating">—</div><div class="metric-progress warm"><i id="metric-rating-bar"></i></div><div class="metric-note" id="metric-rating-note">等待扫描</div></article>
+          <article class="metric-card warning clickable" data-goto="library" data-filter="issues" title="查看处理清单"><div class="metric-label">需要关注</div><div class="metric-value" id="metric-issues">—</div><div class="metric-note">评分、封面或媒体诊断</div></article>
+        </div>
+        <div class="content-grid two-col">
+          <article class="panel health-panel"><div class="panel-heading"><div><h3>状态拆解</h3><p>每一项都说明“资源为什么被计入”</p></div><button class="text-button" data-page-link="library" data-filter="issues">查看问题 →</button></div><div id="health-breakdown" class="breakdown-list"></div></article>
+          <article class="panel scan-panel"><div class="panel-heading"><div><h3>最近任务</h3><p id="last-scan-time">尚未执行</p></div><span class="status-badge" id="scan-status-badge">未开始</span></div><div class="scan-progress"><div class="progress-track"><i id="scan-progress-bar"></i></div><div class="scan-progress-meta"><span id="scan-progress-text">—</span><span id="scan-progress-percent">0%</span></div></div><div id="scan-summary" class="scan-summary"></div></article>
+        </div>
+        <div class="content-grid two-col diagnostic-grid">
+          <article class="panel diagnostic-panel"><div class="panel-heading"><div><h3>评分与数据诊断</h3><p id="diagnostic-summary">正在检查评分来源、缓存一致性和海报状态</p></div><span class="status-badge muted" id="diagnostic-status">检查中</span></div><div id="diagnostic-list" class="diagnostic-list"></div></article>
+          <article class="panel diagnostic-panel"><div class="panel-heading"><div><h3>处理建议</h3><p>优先处理关键项，避免封面展示过时或错误评分</p></div></div><div id="diagnostic-actions" class="diagnostic-actions"></div></article>
+        </div>
+        <div class="content-grid two-col lower-grid">
+          <article class="panel source-panel"><div class="panel-heading"><div><h3>评分源覆盖</h3><p>只统计已存在的评分</p></div><button class="text-button" data-page-link="sources">管理来源 →</button></div><div id="source-coverage" class="source-list"></div></article>
+          <article class="panel quick-panel"><div class="panel-heading"><div><h3>快捷操作</h3><p>常用的维护入口</p></div></div><div class="quick-actions"><button data-action="open-style"><b>✦</b><span>调整海报样式<small>预览评分和徽章布局</small></span><em>→</em></button><button data-action="open-library"><b>⌕</b><span>检查待处理资源<small>定位评分或封面问题</small></span><em>→</em></button><button data-action="open-settings"><b>⚙</b><span>连接设置<small>检查 Emby 与评分源</small></span><em>→</em></button></div></article>
+        </div>
+      </section>
+
+      <section class="page" data-page-view="library">
+        <div class="page-intro"><div><p class="eyebrow">MEDIA LIBRARY</p><h2>影视库</h2><p>浏览评分封面，集中处理需要确认的作品。</p></div><button class="secondary-button" id="library-scan-btn">↻ 重新扫描</button><button class="secondary-button" id="bulk-toggle" title="进入批量选择模式">批量选择</button></div>
+        <div class="toolbar panel"><div class="library-toolbar-left"><select id="library-select" class="library-select"><option value="">全部影视库</option></select><div class="search-box"><span>⌕</span><input id="library-search" placeholder="搜索片名或原名…"></div></div><div class="filter-pills"><button class="filter-pill active" data-library-filter="all">全部资源</button><button class="filter-pill" data-library-filter="issues">处理清单</button></div><div class="library-toolbar-right"><select id="library-sort" class="library-select" title="排序方式"><option value="name">按名称</option><option value="year">按年份</option><option value="rating">按评分</option><option value="added">按添加时间</option></select><select id="library-type" class="library-select" title="类型"><option value="">全部类型</option><option value="Movie">电影</option><option value="Series">剧集</option><option value="Season">季</option></select></div></div>
+        <div class="muted-note hidden" id="douban-freshness"></div>
+        <article id="task-queue-panel" class="panel task-queue-panel hidden"></article><div id="library-grid" class="poster-grid"></div>
+        <article id="library-workbench" class="panel library-workbench hidden"><div class="panel-heading"><div><h3>处理清单</h3><p id="matching-queue-summary">默认只显示需要你操作的条目。</p></div><button class="secondary-button" id="refresh-matching-queue">↻ 更新检查</button><button class="secondary-button" id="queue-bulk-render" title="对当前列表前 200 项执行重绘">↻ 批量重绘当前列表</button></div><div class="matching-queue-filters" id="matching-queue-filters" role="tablist" aria-label="处理状态"></div><div id="douban-gap-tools" class="douban-gap-tools hidden"><label>资源范围<select id="douban-gap-scope"><option value="works">电影与剧集（不含独立季）</option><option value="seasons">独立季</option></select></label><label>缺分原因<select id="douban-gap-reason"><option value="">全部原因</option></select></label><p id="douban-gap-breakdown"></p></div><div class="workbench-tools"><span id="queue-help">等待、参考和已忽略不计入待处理。</span><span id="queue-updated-at"></span></div><div id="matching-queue-rows" class="matching-queue-rows"></div><nav class="queue-pagination" aria-label="处理清单分页"><span id="queue-page-label"></span><div class="page-controls"><button id="queue-prev">上一页</button><div id="queue-page-numbers" class="page-numbers"></div><button id="queue-next">下一页</button><label>跳至<input id="queue-page-jump" type="number" min="1" aria-label="处理清单页码"></label><button data-page-jump="queue">跳转</button></div></nav></article>
+        <nav class="pagination" aria-label="影视库分页"><span id="library-page-label">第 1 页</span><div class="page-controls"><button id="prev-page">上一页</button><div id="library-page-numbers" class="page-numbers"></div><button id="next-page">下一页</button><label>跳至<input id="library-page-jump" type="number" min="1" aria-label="影视库页码"></label><button data-page-jump="library">跳转</button></div></nav>
+      </section>
+
+      <section class="page" data-page-view="style">
+        <div class="page-intro"><div><p class="eyebrow">POSTER STYLE</p><h2>海报样式</h2><p>精细调整，实时预览。保存样式不会立即重绘整库。</p></div><div class="page-actions"><button class="secondary-button" id="reset-style-btn">恢复默认</button><button class="primary-button" id="save-style-btn">保存样式</button></div></div>
+        <div class="style-layout simplified-style">
+          <div class="panel style-controls simple-style-panel"><div class="panel-heading"><div><h3>海报外观</h3><p>先选显示方案，再调整大小和边距。修改只保存在草稿。</p></div></div>
+            <div class="preset-row"><button class="preset active" data-preset="compact"><strong>简洁评分</strong><small>隐藏缺少的评分</small></button><button class="preset" data-preset="fixed"><strong>固定三栏</strong><small>缺少评分显示占位</small></button><button class="preset" data-preset="quality_only"><strong>仅质量徽章</strong><small>不显示底部评分</small></button></div>
+            <section class="simple-adjust style-quickbar"><div class="simple-adjust-head"><label>调整对象<select id="style-target"><option value="rating">评分栏</option><option value="badge">质量徽章</option></select></label><div class="style-history"><button id="style-undo" class="secondary-button" disabled>撤销</button><button id="style-redo" class="secondary-button" disabled>重做</button></div></div>
+              <label class="simple-position">摆放位置<select id="simple-position"><option value="bottom">底部</option><option value="top">顶部</option></select></label>
+              <label>大小<div class="range-row"><input id="simple-size" type="range" min="0.75" max="1.5" step="0.05"><output id="simple-size-value"></output></div></label>
+              <label>上下位置<div class="range-row"><input id="simple-y" type="range" min="-80" max="80" step="1"><output id="simple-y-value"></output></div></label>
+              <label class="simple-link"><input id="simple-apply-all" type="checkbox" checked><span>同时应用到该对象的所有数量布局</span></label><p id="simple-context" class="simple-context"></p>
+              <details class="style-fine"><summary>精细调整 · 左右位置、按数量独立设置</summary><p>不需要时保持收起。关闭上方同步选项，可单独调整当前数量。</p>
+                <div class="quickbar-controls"><label>微调步长<select id="style-step"><option value="1">1 px</option><option value="5" selected>5 px</option><option value="10">10 px</option></select></label><div class="nudge-group" role="group" aria-label="方向微调"><button data-style-nudge="left" aria-label="向左移动">←</button><button data-style-nudge="up" aria-label="向上移动">↑</button><button data-style-nudge="down" aria-label="向下移动">↓</button><button data-style-nudge="right" aria-label="向右移动">→</button></div><button class="secondary-button" data-style-nudge="center">水平居中</button><button class="text-button" data-style-nudge="reset">重置当前布局</button></div>
+<div class="layout-editor"><div class="layout-editor-head"><div><b>评分布局</b><small>按单列、双列、三列分别调整</small></div><select id="rating-layout-count"><option value="1">单列</option><option value="2">双列</option><option value="3">三列</option></select></div><div class="layout-editor-grid"><label>左右偏移<div class="range-row"><input type="range" id="rating-layout-x" min="-120" max="120" step="1"><output id="rating-layout-x-value"></output></div></label><label>上下偏移<div class="range-row"><input type="range" id="rating-layout-y" min="-80" max="80" step="1"><output id="rating-layout-y-value"></output></div></label><label>布局大小<div class="range-row"><input type="range" id="rating-layout-scale" min="0.75" max="1.5" step="0.05"><output id="rating-layout-scale-value"></output></div></label></div></div><div class="layout-editor"><div class="layout-editor-head"><div><b>质量徽章布局</b><small>按 1、2、3、4 个徽章分别调整</small></div><select id="badge-layout-count"><option value="1">1 个徽章</option><option value="2">2 个徽章</option><option value="3">3 个徽章</option><option value="4">4 个徽章</option></select></div><div class="layout-editor-grid"><label>左右偏移<div class="range-row"><input type="range" id="badge-layout-x" min="-120" max="120" step="1"><output id="badge-layout-x-value"></output></div></label><label>上下偏移<div class="range-row"><input type="range" id="badge-layout-y" min="-80" max="120" step="1"><output id="badge-layout-y-value"></output></div></label><label>布局大小<div class="range-row"><input type="range" id="badge-layout-scale" min="0.75" max="1.5" step="0.05"><output id="badge-layout-scale-value"></output></div></label></div></div>
+                <p class="shortcut-hint">快捷区非输入焦点：方向键微调，Shift 加大步长；Ctrl / ⌘ + Z 撤销、Ctrl / ⌘ + S 保存。</p>
+              </details><div class="simple-save-note"><span id="style-draft-status">已保存状态</span><span>保存样式不会立即重绘整库</span></div>
+            </section>
+            <div class="legacy-style-fields hidden" aria-hidden="true"><div class="control-section"><label>质量徽章位置<select id="badge-position"><option value="top-left">左上</option><option value="top-center">顶部居中</option><option value="top-right">右上</option></select></label><label>徽章大小<div class="range-row"><input type="range" id="badge-scale" min="0.75" max="1.5" step="0.05"><output id="badge-scale-value"></output></div></label><label>徽章上下偏移<div class="range-row"><input type="range" id="badge-offset-y" min="0" max="80" step="1"><output id="badge-offset-y-value"></output></div></label></div><div class="control-section"><label>评分栏位置<select id="rating-position"><option value="bottom">底部</option><option value="top">顶部</option></select></label><label>默认评分栏大小<div class="range-row"><input type="range" id="rating-scale" min="0.75" max="1.5" step="0.05"><output id="rating-scale-value"></output></div></label><label>默认评分栏上下偏移<div class="range-row"><input type="range" id="rating-offset-y" min="0" max="80" step="1"><output id="rating-offset-y-value"></output></div></label></div></div>
+          </div>
+          <div class="panel preview-panel"><div class="panel-heading"><div><h3>实时预览</h3><p>预览使用 Worker 的真实渲染规则</p></div><button class="ghost-button" id="preview-refresh-btn">↻</button></div><div class="preview-stage"><div class="preview-poster"><div class="preview-loading">Worker 正在渲染实际样张…</div></div></div><div class="preview-meta"><span>示例：科幻电影 · 2024</span><span>1000 × 1500</span></div></div>
+        </div>
+      </section>
+
+      <section class="page sources-page" data-page-view="sources">
+        <div class="page-intro"><div><p class="eyebrow">RATING SOURCES</p><h2>数据来源</h2><p>评分源可以独立使用，优先复用 Emby 已有数据，再用 MDBList / OMDb 补充。</p></div><button class="secondary-button" id="test-connection-btn">检查 API Key</button></div>
+        <div class="source-grid"><article class="panel source-config-card emby-source-card"><div class="source-card-icon emby">E</div><div class="panel-heading"><div><h3>Emby</h3><p>基础连接，海报渲染和媒体信息的必需项</p></div><span id="emby-source-status" class="status-badge muted">未配置</span></div><div class="source-detail"><span>地址</span><b id="source-emby-url">—</b></div><div class="source-detail"><span>API Key</span><b id="source-emby-key">未配置</b></div><div class="key-editor-list" id="emby-key-editor-list"></div></article><article class="panel source-config-card"><div class="source-card-icon omdb">O</div><div class="panel-heading"><div><h3>OMDb</h3><p>备用，用于 IMDb 和 Rotten Tomatoes</p></div><span id="omdb-source-status" class="status-badge muted">未配置</span></div><div class="source-detail"><span>用途</span><b>IMDb / RT 备用查询</b></div><div class="source-detail"><span>Key 数量</span><b id="omdb-source-count">0</b></div><div class="key-editor-list" id="omdb-key-editor-list"></div><button type="button" class="text-button add-key-button" data-add-key="omdb">＋ 添加 OMDb Key</button></article><article class="panel source-config-card"><div class="source-card-icon omdb">M</div><div class="panel-heading"><div><h3>MDBList</h3><p>推荐，用于聚合 IMDb / 烂番茄</p></div><span id="mdblist-source-status" class="status-badge muted">未配置</span></div><div class="source-detail"><span>用途</span><b>IMDb / RT 批量补充</b></div><div class="source-detail"><span>Key 数量</span><b id="mdblist-source-count">0</b></div><div class="key-editor-list" id="mdblist-key-editor-list"></div><button type="button" class="text-button add-key-button" data-add-key="mdblist">＋ 添加 MDBList Key</button></article></div><div id="source-setup-hint" class="source-setup-hint"></div>
+        
+        <details class="source-audit-details"><summary>数据审计与缓存记录 <small>参考信息，不计入待处理</small></summary><article class="panel douban-audit-panel"><div class="panel-heading"><div><h3>豆瓣评分自动审计</h3><p>按豆瓣 ID 与 IMDb ID 核对本地缓存，并标出不一致、缺失和过期。</p></div><button type="button" class="secondary-button" id="refresh-rating-audit">刷新审计</button></div><div id="douban-audit-summary" class="audit-summary">等待首次扫描生成审计报告…</div><div id="douban-audit-findings" class="audit-findings"></div><small id="douban-audit-footnote" class="audit-footnote"></small></article>
+        <article class="panel douban-audit-panel"><div class="panel-heading"><div><h3>评分准确性与身份待确认</h3><p>实际有数值才算覆盖；本地候选需确认后绑定。</p></div></div><p id="accuracy-summary">等待扫描报告…</p><div id="accuracy-findings" class="audit-findings" style="max-height:420px;overflow:auto"></div></article>
+        
+        </details>
+        <article class="panel source-priority-panel"><div class="panel-heading"><div><h3>评分来源说明</h3><p>当前 Worker 的兼容逻辑</p></div></div><div class="source-flow"><div><b>手动覆盖</b><span>优先级最高</span></div><i>→</i><div><b>已核实缓存</b><span>Douban ID / IMDb ID</span></div><i>→</i><div><b>MDBList</b><span>批量优先补充</span></div><i>→</i><div><b>OMDb</b><span>备用补充</span></div></div><div class="source-note"><strong>与神医助手 Pro 配合</strong><p>先在神医助手 Pro 中构建豆瓣缓存。Worker 只接受身份校验通过的豆瓣缓存；通用 CommunityRating 不会默认冒充豆瓣。IMDb 和缺失的烂番茄评分由 MDBList 补充，OMDb 可作备用。CriticRating 仅在明确配置为烂番茄影评人分时使用。</p></div></article>
+      </section>
+
+      <section class="page" data-page-view="tasks">
+        <div class="page-intro"><div><p class="eyebrow">TASKS & LOGS</p><h2>任务与日志</h2><p>扫描任务会串行执行，避免多次同时写入同一张海报。</p></div><button class="secondary-button" id="tasks-clear-btn">清空已完成</button><button class="primary-button" id="tasks-scan-btn">▶ 立即扫描</button></div>
+        <article class="panel task-live"><div class="panel-heading"><div><h3>当前任务</h3><p id="task-live-subtitle">等待任务</p></div><span class="status-badge" id="task-live-badge">空闲</span></div><div class="progress-track large"><i id="task-progress-bar"></i></div><div class="scan-progress-meta"><span id="task-progress-text">—</span><span id="task-progress-percent">0%</span></div></article>
+        <article class="panel rating-update-panel"><div class="panel-heading"><div><h3>评分更新状态</h3><p>这里可以确认 IMDb / 烂番茄是否实际刷新、来自哪个来源以及本次处理结果。</p></div><span id="rating-update-status" class="status-badge muted">尚未检测</span></div><div id="rating-update-summary" class="rating-update-summary">暂无评分更新记录</div><div id="rating-update-details" class="rating-update-details"></div></article><article class="panel report-panel"><div class="panel-heading"><div><h3>最近扫描报告</h3><p>保存在缓存目录中的可恢复记录</p></div></div><pre id="scan-report-json" class="json-view">暂无报告</pre></article>
+      </section>
+
+      <section class="page" data-page-view="settings">
+        <div class="page-intro"><div><p class="eyebrow">SYSTEM SETTINGS</p><h2>系统设置</h2><p>敏感凭据只在服务端保存。API Key 请在“数据来源”页面逐个管理。</p></div><button class="primary-button" id="save-settings-btn">保存设置</button></div>
+        <div class="settings-layout">
+        <div class="settings-row">
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>服务连接</h3><p>设置 Emby 和评分封面的访问地址</p></div></div><label>Emby 地址<input id="setting-emby-url" type="url" placeholder="http://emby:8096"></label><label>公开海报地址<input id="setting-public-url" type="url" placeholder="http://worker:8098"><small>播放器应能访问这个地址。</small></label><label>图片发布模式<select id="setting-delivery"><option value="url">URL 优先</option><option value="upload">上传到 Emby</option><option value="dual">上传并设置 URL</option></select></label></article>
+            </div>
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>自动更新</h3><p>扫描新增资源、读取评分并更新封面</p></div></div><div class="settings-fields"><label>扫描间隔（分钟）<input id="setting-poll" type="number" min="5" step="5"></label><label>新入库等待期（小时）<input id="setting-grace" type="number" min="1" max="168" value="48"></label></div><p class="settings-explainer">等待期内缺评分归为“等待自动处理”；明显错配仍立即提醒。</p><label class="switch-line"><span><b>额外生成每季封面</b><small>使用各季独立评分，不复制整剧分数</small></span><input id="setting-seasons" type="checkbox"><i class="switch"></i></label><p class="settings-explainer">只展示整剧封面的播放器可以关闭此项，减少处理量。</p></article>
+            </div>
+        </div>
+        <div class="settings-row">
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>影视库范围</h3><p>只处理勾选的影视库，其余库完全跳过</p></div><span class="status-badge" id="library-scope-badge">全部</span></div>
+              <label class="switch-line"><span><b>启用范围限制</b><small>关闭时处理所有影视库</small></span><input id="setting-library-scope" type="checkbox"><i class="switch"></i></label>
+              <div class="library-scope" id="library-scope-list"><p class="library-scope-hint">正在读取影视库…</p></div>
+              <div class="library-scope-actions"><label class="library-scope-all"><input type="checkbox" id="library-scope-all"><span>全选</span></label><span class="library-scope-count" id="library-scope-count"></span></div>
+              <p class="settings-explainer">未勾选的库不会被读取、不会生成海报，也不会计入失败。新建的库默认不勾选。</p>
+            </article>
+            </div>
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>自动维护</h3><p>备份、缓存清理与评分刷新频率</p></div></div>
+<div class="ops-grid">
+  <label class="switch-line"><span><b>每周自动备份</b><small>原图 + 状态 + 配置</small></span><input id="ops-backup-enabled" type="checkbox"><i class="switch"></i></label>
+  <label>保留份数<input id="ops-backup-keep" type="number" min="1" max="10"></label>
+  <label>执行小时（0-23）<input id="ops-backup-hour" type="number" min="0" max="23"></label>
+  <label>间隔天数<input id="ops-backup-interval" type="number" min="1" max="90"></label>
+</div>
+<div class="ops-grid">
+  <label class="switch-line"><span><b>自动清理孤儿缓存</b><small>删除已移除影片的残留</small></span><input id="ops-gc-enabled" type="checkbox"><i class="switch"></i></label>
+  <label>保留天数<input id="ops-gc-days" type="number" min="1" max="365"></label>
+</div>
+<div class="ops-grid ops-grid-3">
+  <label>豆瓣刷新（天）<input id="ops-refresh-douban" type="number" min="1" max="365"></label>
+  <label>IMDb 刷新（天）<input id="ops-refresh-imdb" type="number" min="1" max="365"></label>
+  <label>烂番茄刷新（天）<input id="ops-refresh-rt" type="number" min="1" max="365"></label>
+</div>
+</article>
+            </div>
+        </div>
+        <div class="settings-row">
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>Webhook 与告警</h3><p>改完点右上角「保存设置」立即生效</p></div></div>
+<div class="ops-row"><label>Emby Webhook 地址<input id="ops-webhook-url" readonly></label><button class="ghost-button" id="ops-webhook-copy" type="button">复制</button></div>
+<label>扫描失败告警地址<input id="ops-alert-url" type="url" placeholder="企业微信/钉钉/飞书机器人地址，留空则不推送"></label>
+<label>告警阈值（失败条目数）<input id="ops-alert-min" type="number" min="1" max="100"></label>
+</article>
+              <article class="panel settings-card"><div class="panel-heading"><div><h3>运行状态</h3><p>备份、Webhook 与缓存清理的当前结果</p></div></div><div class="maintenance-rows"><div class="maintenance-row"><span>原图备份</span><b id="maint-backup">读取中…</b></div><div class="maintenance-row"><span>Emby Webhook</span><b id="maint-webhook">读取中…</b></div><div class="maintenance-row"><span>扫描告警</span><b id="maint-alert">读取中…</b></div><div class="maintenance-row"><span>缓存清理</span><b id="maint-gc">读取中…</b></div></div></article>
+            </div>
+            <div class="settings-subcol"><article class="panel settings-card"><div class="panel-heading"><div><h3>评分准确性</h3><p>确认作品身份后，再采用对应评分</p></div></div><div class="rating-policy-note"><b>豆瓣来源校验</b><p id="setting-douban-policy"></p></div><p class="settings-explainer">Emby 的 CommunityRating 是通用评分字段，不能仅凭分数相同就认定来自豆瓣。人工固定分保持优先，切回自动后跟随来源更新。</p><div class="settings-flow"><span>确认作品 ID</span><i>→</i><span>神医助手构建缓存</span><i>→</i><span>Worker 更新封面</span></div></article>
+              <article class="panel settings-card security-card"><div class="panel-heading"><div><h3>管理员账号</h3><p id="admin-account-label">admin</p></div></div><button class="secondary-button full" id="change-password-btn">修改密码</button></article>
+            </div>
+        </div>
+        </div>
+        </section>
+    </main>
+  </div>
+
+  <div id="login-view" class="login-view"><div class="login-card"><div class="login-brand"><div class="brand-mark large">EP</div><div><strong>Poster Worker</strong><span>Emby 海报管理控制台</span></div></div><h1>欢迎回来</h1><p>登录后管理评分、徽章和影视库健康度。</p><form id="login-form"><label>账号<input id="login-username" autocomplete="username" value="admin" required></label><label>密码<input id="login-password" type="password" autocomplete="current-password" required></label><button class="primary-button wide" type="submit">登录控制台</button><div id="login-error" class="form-error"></div></form><small class="login-footnote">首次启动的初始密码会写入容器日志，请登录后立即修改。</small></div></div>
+
+  <div id="bulk-bar" class="bulk-bar hidden" role="region" aria-label="批量操作">
+    <span class="bulk-count" id="bulk-count">已选 0 项</span>
+    <button class="primary-button" id="bulk-render">重绘封面</button>
+    <button class="secondary-button" id="bulk-refresh">重新抓取评分</button>
+    <button class="ghost-button" id="bulk-cancel">取消</button>
+  </div>
+  <div id="item-modal" class="modal hidden"><div class="modal-backdrop" data-close-modal></div><div class="modal-card item-modal-card"><button class="modal-close" data-close-modal>×</button><div id="item-detail-content"></div></div></div>
+  <div id="match-modal" class="modal hidden"><div class="modal-backdrop" data-close-match></div><div class="modal-card match-modal-card"><button class="modal-close" data-close-match title="关闭匹配窗口">×</button><div class="match-modal-head"><h2>选择正确作品</h2><p id="match-subject"></p></div><form id="match-search-form" class="match-search-form"><label>片名或原名<input id="match-search-query" placeholder="输入片名、英文名或日文名" required maxlength="120"></label><label>年份<input id="match-search-year" inputmode="numeric" maxlength="4" placeholder="可留空"></label><label>类型<select id="match-search-kind"><option value="Movie">电影</option><option value="Series">剧集</option></select></label><button type="submit" class="primary-button" id="match-search-submit">搜索</button></form><div class="match-id-entry"><label>直接输入豆瓣 ID 或条目链接<input id="match-douban-id" form="match-search-form" placeholder="例如 26430107，或粘贴豆瓣条目链接"></label><p>填写后点击搜索，直接核对该条目；留空则按片名搜索。</p></div><div class="match-source-status" id="match-source-status"></div><p class="match-status" id="match-search-status" role="status"></p><div class="match-candidates" id="match-candidates"></div><section class="match-review hidden" id="match-review"></section></div></div>
+  <div id="password-modal" class="modal hidden"><div class="modal-backdrop" data-close-password></div><div class="modal-card small-modal"><button class="modal-close" data-close-password>×</button><h3>修改管理员密码</h3><p>修改后当前登录会话仍然有效。</p><form id="password-form"><label>当前密码<input id="current-password" type="password" required></label><label>新密码<input id="new-password" type="password" minlength="8" required></label><label>确认新密码<input id="confirm-password" type="password" minlength="8" required></label><button class="primary-button wide" type="submit">保存新密码</button><div id="password-error" class="form-error"></div></form></div></div>
+  <script src="app.js"></script>
+  <script src="match.js"></script>
+  <script src="style-tools.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+services:
+  emby-poster-worker:
+    build: .
+    container_name: emby-poster-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CACHE_DIR: ${CACHE_DIR:-/data/cache}
+      POLL_SECONDS: ${POLL_SECONDS:-3600}
+      HTTP_PORT: ${HTTP_PORT:-8080}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8098}
+      APP_VERSION: ${APP_VERSION:-1.0.0}
+      TZ: ${TZ:-Asia/Shanghai}
+      LOG_TIMEZONE: ${LOG_TIMEZONE:-Asia/Shanghai}
+      LOG_HTTP_REQUESTS: ${LOG_HTTP_REQUESTS:-false}
+      LOG_ITEM_UPDATES: ${LOG_ITEM_UPDATES:-true}
+      SCAN_PROGRESS_EVERY: ${SCAN_PROGRESS_EVERY:-50}
+      CACHE_GC_ENABLED: ${CACHE_GC_ENABLED:-false}
+      CACHE_GC_DAYS: ${CACHE_GC_DAYS:-30}
+      SCAN_REPORT_FILE: ${SCAN_REPORT_FILE:-/data/cache/reports/last-scan.json}
+      REVIEW_REPORT_FILE: ${REVIEW_REPORT_FILE:-/data/cache/reports/review-needed.json}
+      OMDB_MIN_INTERVAL_MS: ${OMDB_MIN_INTERVAL_MS:-250}
+      OMDB_RETRY_COUNT: ${OMDB_RETRY_COUNT:-2}
+      OMDB_BACKOFF_SECONDS: ${OMDB_BACKOFF_SECONDS:-2}
+      OMDB_CIRCUIT_BREAK_MINUTES: ${OMDB_CIRCUIT_BREAK_MINUTES:-15}
+      OMDB_SKIP_GENRES: ${OMDB_SKIP_GENRES:-Concert,Music,Live,综艺,演唱会}
+      IMAGE_DELIVERY_MODE: ${IMAGE_DELIVERY_MODE:-url}
+      MEDIA_HEALTH_REPORT_FILE: ${MEDIA_HEALTH_REPORT_FILE:-/data/cache/reports/media-health.json}
+      MDBLIST_API_BASE: ${MDBLIST_API_BASE:-https://api.mdblist.com}
+      MDBLIST_USE_PROXY: ${MDBLIST_USE_PROXY:-false}
+      MDBLIST_CACHE_DAYS: ${MDBLIST_CACHE_DAYS:-7}
+      MDBLIST_ERROR_CACHE_MINUTES: ${MDBLIST_ERROR_CACHE_MINUTES:-60}
+      MDBLIST_MIN_INTERVAL_MS: ${MDBLIST_MIN_INTERVAL_MS:-250}
+      MDBLIST_RETRY_COUNT: ${MDBLIST_RETRY_COUNT:-2}
+      MDBLIST_BACKOFF_SECONDS: ${MDBLIST_BACKOFF_SECONDS:-2}
+      RATING_EXTERNAL_PROVIDER_ORDER: ${RATING_EXTERNAL_PROVIDER_ORDER:-mdblist,omdb}
+      ADMIN_DATA_DIR: /data/config
+    ports:
+      - "${PUBLIC_PORT:-8098}:8080"
+    volumes:
+      - ./cache:/data/cache
+      - ./config:/data/config
+      # 可选：神医助手 Pro 的豆瓣缓存目录（只读），里面应有 cache/ 子目录。
+      # 留空目录不会报错，但豆瓣评分会全部显示 --。详见 README 的「豆瓣评分自动核对与可信度」。
+      - ${DOUBAN_CACHE_HOST_PATH:-./douban-cache}:/data/douban:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"

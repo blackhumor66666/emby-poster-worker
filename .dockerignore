@@ -1,0 +1,15 @@
+.env
+.env.*
+cache/
+config/
+douban-cache/
+__pycache__/
+*.pyc
+*.bak
+*.bak-*
+*.tmp
+.git/
+.github/
+tests/
+review/
+*.zip
