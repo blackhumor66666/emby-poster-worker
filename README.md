@@ -9,7 +9,7 @@
 **渲染后的海报**——顶部画质徽章，底部三源评分条：
 
 <p align="center">
-  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K REMUX HDR10 DTS-HD 徽章，豆瓣 8.4 / IMDb 8.0 / 烂番茄 91%">
+  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K REMUX DOLBY VISION DOLBY ATMOS 徽章，豆瓣 8.3 / IMDb 6.7 / 烂番茄 83%">
 </p>
 
 **同一个条目，处理前后**——原图先缓存再叠加，重绘永远基于干净原图，不会越叠越厚：
@@ -19,13 +19,13 @@
   <img src="docs/screenshots/poster-sample.jpg" width="250" alt="渲染后：徽章与评分就位">
 </p>
 
-**徽章和评分能有多满**——4K 原盘 + HDR/杜比 + 全景声，三源评分一字排开，全部来自真实媒体流：
+**杜比视界 + 杜比全景声的双杜比组合**——视频和音频的杜比标识各自独立判定，HDR10 + 全景声、视界 + TrueHD 等混搭也各占其位：
 
 <p align="center">
-  <img src="docs/screenshots/poster-oppenheimer.jpg" width="185" alt="奥本海默：4K REMUX HDR10 DTS-HD，豆 8.8 / IMDb 8.2 / 番茄 93%">
+  <img src="docs/screenshots/poster-nezha.jpg" width="185" alt="哪吒之魔童降世：4K REMUX DOLBY VISION ATMOS，豆 8.4 / IMDb 7.3 / 番茄 88%">
+  <img src="docs/screenshots/poster-yipman.jpg" width="185" alt="叶问：4K REMUX DOLBY VISION ATMOS，豆 7.8 / IMDb 8.0 / 番茄 86%">
+  <img src="docs/screenshots/poster-constantine.jpg" width="185" alt="康斯坦丁：4K REMUX DOLBY VISION ATMOS，豆 8.1 / IMDb 7.0 / 番茄 46%">
   <img src="docs/screenshots/poster-gump.jpg" width="185" alt="阿甘正传：4K REMUX HDR10 DOLBY ATMOS，豆 9.5 / IMDb 8.8 / 番茄 75%">
-  <img src="docs/screenshots/poster-avatar2.jpg" width="185" alt="阿凡达水之道：4K REMUX DOLBY VISION TRUEHD，豆 7.8 / IMDb 7.5 / 番茄 76%">
-  <img src="docs/screenshots/poster-bohemian.jpg" width="185" alt="波西米亚狂想曲：4K REMUX HDR10 DTS-HD，豆 8.6 / IMDb 7.9 / 番茄 60%">
   <img src="docs/screenshots/poster-newsroom.jpg" width="185" alt="新闻编辑室：4K WEB-DL，剧集同样适用">
 </p>
 
