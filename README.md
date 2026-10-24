@@ -9,7 +9,7 @@
 **渲染后的海报**——顶部画质徽章，底部三源评分条：
 
 <p align="center">
-  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K WEB-DL 徽章，豆瓣 9.1 / IMDb 8.6">
+  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K REMUX HDR10 DTS-HD 徽章，豆瓣 8.4 / IMDb 8.0 / 烂番茄 91%">
 </p>
 
 **同一个条目，处理前后**——原图先缓存再叠加，重绘永远基于干净原图，不会越叠越厚：
@@ -19,14 +19,14 @@
   <img src="docs/screenshots/poster-sample.jpg" width="250" alt="渲染后：徽章与评分就位">
 </p>
 
-**电影、剧集、动画、综艺一律适用**——徽章贴在海报顶部留白处，不压标题、不挡人脸；缺失的评分按显示方案自动收栏：
+**徽章和评分能有多满**——4K 原盘 + HDR/杜比 + 全景声，三源评分一字排开，全部来自真实媒体流：
 
 <p align="center">
-  <img src="docs/screenshots/poster-cliff.jpg" width="185" alt="谍战剧：4K WEB-DL，两源">
-  <img src="docs/screenshots/poster-anime.jpg" width="185" alt="动画：4K WEB-DL，两源">
-  <img src="docs/screenshots/poster-drama.jpg" width="185" alt="都市剧：4K WEB-DL，两源">
-  <img src="docs/screenshots/poster-kdrama.jpg" width="185" alt="韩剧：1080P，两源">
-  <img src="docs/screenshots/poster-variety.jpg" width="185" alt="综艺：4K，两源">
+  <img src="docs/screenshots/poster-oppenheimer.jpg" width="185" alt="奥本海默：4K REMUX HDR10 DTS-HD，豆 8.8 / IMDb 8.2 / 番茄 93%">
+  <img src="docs/screenshots/poster-gump.jpg" width="185" alt="阿甘正传：4K REMUX HDR10 DOLBY ATMOS，豆 9.5 / IMDb 8.8 / 番茄 75%">
+  <img src="docs/screenshots/poster-avatar2.jpg" width="185" alt="阿凡达水之道：4K REMUX DOLBY VISION TRUEHD，豆 7.8 / IMDb 7.5 / 番茄 76%">
+  <img src="docs/screenshots/poster-bohemian.jpg" width="185" alt="波西米亚狂想曲：4K REMUX HDR10 DTS-HD，豆 8.6 / IMDb 7.9 / 番茄 60%">
+  <img src="docs/screenshots/poster-newsroom.jpg" width="185" alt="新闻编辑室：4K WEB-DL，剧集同样适用">
 </p>
 
 **内置管理控制台**——纯静态页面，由 Worker 直接托管，不需要 Node、不需要数据库：
