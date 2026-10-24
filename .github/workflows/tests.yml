@@ -12,6 +12,11 @@ permissions:
 jobs:
   unittest:
     runs-on: ubuntu-latest
+    env:
+      # app.py defaults these to /data/*, which does not exist on a runner.
+      # tests/__init__.py sets the same defaults for local runs.
+      CACHE_DIR: ${{ runner.temp }}/pw-cache
+      ADMIN_DATA_DIR: ${{ runner.temp }}/pw-config
     steps:
       - uses: actions/checkout@v4
 
