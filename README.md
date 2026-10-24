@@ -9,7 +9,7 @@
 **渲染后的海报**——顶部画质徽章，底部三源评分条：
 
 <p align="center">
-  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K BLURAY HDR10 DOLBY 徽章，豆瓣 8.8 / IMDb 7.9 / 烂番茄 81%">
+  <img src="docs/screenshots/poster-sample.jpg" width="300" alt="渲染后的海报：4K WEB-DL 徽章，豆瓣 9.1 / IMDb 8.6">
 </p>
 
 **同一个条目，处理前后**——原图先缓存再叠加，重绘永远基于干净原图，不会越叠越厚：
@@ -19,14 +19,14 @@
   <img src="docs/screenshots/poster-sample.jpg" width="250" alt="渲染后：徽章与评分就位">
 </p>
 
-**从 4K 原盘到低清网络源都成立**——徽章按媒体流实际信息生成，缺失的评分按显示方案收起，不留空槽：
+**电影、剧集、动画、综艺一律适用**——徽章贴在海报顶部留白处，不压标题、不挡人脸；缺失的评分按显示方案自动收栏：
 
 <p align="center">
-  <img src="docs/screenshots/poster-apollo.jpg" width="185" alt="4K BLURAY HDR10 DTS-HD，三源">
-  <img src="docs/screenshots/poster-007.jpg" width="185" alt="4K BLURAY">
-  <img src="docs/screenshots/poster-2046.jpg" width="185" alt="4K">
-  <img src="docs/screenshots/poster-dune.jpg" width="185" alt="720P">
-  <img src="docs/screenshots/poster-8mile.jpg" width="185" alt="SD">
+  <img src="docs/screenshots/poster-cliff.jpg" width="185" alt="谍战剧：4K WEB-DL，两源">
+  <img src="docs/screenshots/poster-anime.jpg" width="185" alt="动画：4K WEB-DL，两源">
+  <img src="docs/screenshots/poster-drama.jpg" width="185" alt="都市剧：4K WEB-DL，两源">
+  <img src="docs/screenshots/poster-kdrama.jpg" width="185" alt="韩剧：1080P，两源">
+  <img src="docs/screenshots/poster-variety.jpg" width="185" alt="综艺：4K，两源">
 </p>
 
 **内置管理控制台**——纯静态页面，由 Worker 直接托管，不需要 Node、不需要数据库：
@@ -37,20 +37,61 @@
 
 ## 快速开始
 
+### 第 1 步：准备三个值
+
+打开 Emby 网页端 → **设置 → 高级 → API 密钥** → 点「添加」新建一个 Key，复制下来。再把这三个值记下来：
+
+| 要什么 | 长什么样 | 在哪拿 |
+| --- | --- | --- |
+| Emby 地址 | `http://192.168.1.10:8096` | 你平时访问 Emby 用的网址 |
+| Emby API Key | 一串字母数字 | 上面新建的那个 |
+| Worker 地址 | `http://192.168.1.10:8098` | 你准备部署 Worker 的那台机器的 IP，端口默认 8098 |
+
+### 第 2 步：下载、填写、启动
+
 ```bash
-cp .env.example .env     # 填 EMBY_URL、EMBY_API_KEY、PUBLIC_BASE_URL
+git clone https://github.com/blackhumor66666/emby-poster-worker.git
+cd emby-poster-worker
+cp .env.example .env
+```
+
+用任意编辑器打开 `.env`，**只需要改文件开头的三行**，把第 1 步的值填进去，其他都不用动：
+
+```env
+EMBY_URL=http://192.168.1.10:8096
+EMBY_API_KEY=粘贴你的Key
+PUBLIC_BASE_URL=http://192.168.1.10:8098
+```
+
+> `PUBLIC_BASE_URL` 必须是 **Emby 能访问到**的地址。Emby 和 Worker 装在同一台机器就填那台机器的内网 IP，别填 `localhost`。
+
+然后一条命令启动：
+
+```bash
 docker compose up -d --build
 ```
 
-不想本地构建就用预构建镜像（amd64 + arm64），把 compose 里的 `build: .` 换成：
+不想本地构建？把 `docker-compose.yml` 里的 `build: .` 换成 `image: ghcr.io/blackhumor66666/emby-poster-worker:latest`，再去掉 `--build` 即可。
 
-```yaml
-image: ghcr.io/blackhumor66666/emby-poster-worker:latest
+### 第 3 步：先看效果（这一步不会动你的库）
+
+把 `.env` 里的 `DRY_RUN=false` 改成 `DRY_RUN=true`，保存后再执行一次 `docker compose up -d`。
+
+等一两分钟，打开项目目录下的 `cache/rendered/` 文件夹——里面就是渲染好的成品海报，直接点开检查：徽章位置对不对、评分全不全、有没有遮挡。
+
+> 只想先试一部片？在 `.env` 里加一行 `ITEM_IDS=条目ID`（条目 ID 在 Emby 网页端该影片的地址栏里）。
+
+### 第 4 步：满意后正式生效
+
+把 `DRY_RUN` 改回 `false`，再来一次：
+
+```bash
+docker compose up -d
 ```
 
-控制台在 `http://你的地址:8098`，初始密码见 `docker compose logs | grep -i bootstrap`。
+Worker 每小时扫一次库：新片、换了片源、升级了渲染规则的条目自动重绘，其余跳过。之后基本不用管它。
 
-**第一次务必先试运行**：把 `.env` 里的 `DRY_RUN` 改成 `true`（想先看一部片就同时设置 `ITEM_IDS`），启动后打开 `cache/rendered/` 里的 JPG 检查效果，满意再改回 `false`。
+管理控制台在 `http://Worker地址:8098`。初始密码在容器日志里：`docker compose logs | grep -i bootstrap`，登录后记得改。
 
 ## 功能亮点
 
@@ -68,11 +109,25 @@ image: ghcr.io/blackhumor66666/emby-poster-worker:latest
 
 **刻意不做的事**：不改标题/简介/分类等元数据（除你手动确认的 IMDb、豆瓣 ID 绑定）；不抓豆瓣、不内置评分账号、不绕过任何数据源配额；不做「按客户端显示不同海报」——同一张图会被所有客户端复用，这是刻意取舍。
 
-## 需要准备什么
+## 豆瓣评分来自神医助手 Pro
 
-1. **Emby 4.9+ 和一个 API Key**（读取媒体 + 修改图片权限）。
-2. **`PUBLIC_BASE_URL`** 必须是 **Emby 容器能访问到** 的 Worker 地址，并包含实际映射端口。填错会「装好了但海报空白」。
-3. **豆瓣分需要神医助手 Pro 的本地缓存**（可选）。没有它豆瓣列显示 `--`，IMDb / 烂番茄照常。挂载方式见 `.env.example` 的 `DOUBAN_CACHE_HOST_PATH`。
+Worker **不抓取豆瓣**。豆瓣评分读取的是 [神医助手 Pro](https://github.com/sjtuross/StrmAssistant)（StrmAssistant）在本地产出的评分缓存，Worker 逐条做身份校验后使用。
+
+- **神医助手是干什么的**：一个 Emby 元数据增强插件，负责把豆瓣的评分、ID、简介等刮削进 Emby，并在本机生成评分缓存。没有它，Emby 里就没有豆瓣分，Worker 也无从读取。
+- **两个工具怎么配合**：神医助手负责「把豆瓣数据带进 Emby」，Worker 负责「把这些数据画到海报上」。Worker 只读神医助手的缓存文件，两者互不干扰。
+- **没有神医助手也能用**：IMDb / 烂番茄评分走 Emby 字段 + MDBList / OMDb，不受影响；只是豆瓣列会显示 `--`。
+
+相关地址：
+
+| 资源 | 地址 |
+| --- | --- |
+| 插件主页（社区版） | <https://github.com/sjtuross/StrmAssistant> |
+| Pro 版下载 | <https://github.com/sjtuross/StrmAssistant.Releases/releases> |
+| 使用 Wiki | <https://github.com/sjtuross/StrmAssistant/wiki> |
+| Pro 版功能说明 | <https://github.com/sjtuross/StrmAssistant/wiki/PRO版的功能> |
+| Pro 授权获取 | <https://t.me/strmassistant/71> |
+
+> 神医助手从 v2.0.0.0 起进入 Pro 授权模式，与本 Worker 无关；Worker 读取的是它产出的本地缓存文件，不涉及它的授权流程。配置好神医助手并跑完「豆瓣元数据」任务后，把它的数据目录以只读方式挂给 Worker（`DOUBAN_CACHE_HOST_PATH`，见 `.env.example` 注释）即可。
 
 ## 常用配置
 
@@ -98,7 +153,7 @@ image: ghcr.io/blackhumor66666/emby-poster-worker:latest
 不需要。镜像由 GitHub Actions 构建并托管在 ghcr.io，使用者直接 pull，不依赖发布者的任何机器。
 
 **豆瓣列全是 `--`？**
-说明没有配置豆瓣缓存，属正常。见上面「需要准备什么」第 3 条。
+说明没有配置神医助手的豆瓣缓存，见上面「豆瓣评分来自神医助手 Pro」一节。
 
 **想恢复某张海报？**
 控制台 → 影视库 → 选中条目 → 恢复原图。原图在 `cache/original/`。
